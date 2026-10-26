@@ -1,12 +1,16 @@
-// Tic-Tac-Toe v5 — everything from v1 kept, plus v5 additions.
-// KEPT: Minimax Impossible AI, Easy/Medium, Vs Friend, scoreboard, winning-line highlight, PWA.
-// NEW in v5: Hard difficulty, play as X or O, who moves first, Hint, Undo, streaks + win rate,
-// match history + move log, sound toggle, light/dark theme, saved scores on this phone,
-// keyboard play (1-9), dynamic You/AI vs Player X/O labels, phone/desktop fit.
-const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+// Tic-Tac-Toe v6 — everything from v5 kept, plus board sizes.
+// KEPT: Minimax Impossible AI, Easy/Medium/Hard, Vs Friend, play as X/O, first move,
+// Hint, Undo, streaks + win rate, move log + match history, sound, light/dark theme, PWA.
+// NEW in v6: Board size 3x3, 4x4, 5x5, 6x6, 9x9, 12x12, 15x15.
+// Win length: 3 in a row on 3x3, 4 on 4x4, 5 on 5x5 and bigger (15x15 is Gomoku-style).
+// HONEST AI LIMIT: 3x3 Impossible = perfect Minimax, never loses. On big boards perfect
+// Minimax would need to search millions of moves and would hang a phone, so big-board
+// Impossible uses a strong heuristic (win > block win > open 4 > open 3 > centre). It is
+// very strong, but it is not mathematically perfect like 3x3 Minimax.
 const $ = id => document.getElementById(id);
 const boardEl = $("board"), statusEl = $("status"), modeEl = $("mode"), diffEl = $("difficulty"),
-      sideEl = $("side"), firstEl = $("first"), hintLine = $("hintLine"), endBanner = $("endBanner");
+      sideEl = $("side"), firstEl = $("first"), hintLine = $("hintLine"), endBanner = $("endBanner"),
+      sizeEl = $("boardSize");
 
 let board, turn, over, moves = [], lastResult = null, hintCell = null;
 let scores = load("ttt-v5-scores", {X:0, O:0, D:0});
@@ -18,14 +22,28 @@ let theme = load("ttt-v5-theme", "dark");
 function load(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key)); return v === null || v === undefined ? fallback : v; } catch (e) { return fallback; } }
 function save(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
 function other(p) { return p === "X" ? "O" : "X"; }
+function size() { return parseInt(sizeEl.value, 10); }
+function winLen() { return size() <= 4 ? size() : 5; }
+function rc(i) { return [Math.floor(i / size()), i % size()]; }
+function idx(r, c) { return r * size() + c; }
+function inBoard(r, c) { return r >= 0 && r < size() && c >= 0 && c < size(); }
 
 function winner(b) {
-  for (const [a,c,d] of WINS) if (b[a] && b[a]===b[c] && b[a]===b[d]) return {player:b[a], line:[a,c,d]};
+  const n = size(), w = winLen();
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  for (let r=0;r<n;r++) for (let c=0;c<n;c++) {
+    const p = b[idx(r,c)]; if (!p) continue;
+    for (const [dr,dc] of dirs) {
+      const line = [];
+      for (let k=0;k<w;k++) { const rr=r+dr*k, cc=c+dc*k; if (!inBoard(rr,cc) || b[idx(rr,cc)]!==p) break; line.push(idx(rr,cc)); }
+      if (line.length===w) return {player:p, line};
+    }
+  }
   return null;
 }
 function emptyCells(b){ return b.map((v,i)=>v?null:i).filter(v=>v!==null); }
 
-// Minimax, scored from the AI's point of view: AI win = +10, human win = -10, faster wins are better.
+// --- 3x3 Minimax (perfect, only used on 3x3) ---
 function minimax(b, turnPlayer, ai, depth=0) {
   const w = winner(b);
   if (w) return w.player===ai ? 10-depth : depth-10;
@@ -39,14 +57,78 @@ function minimax(b, turnPlayer, ai, depth=0) {
   }
   return best;
 }
-function bestMoveFor(b, player, ai) {
-  // Best move for `player`: maximise if player is AI, minimise if player is human.
+function minimaxMove(b, player, ai) {
   let bestScore = player===ai ? -Infinity : Infinity, move = null;
   for (const i of emptyCells(b)) {
     b[i]=player; const s=minimax(b, other(player), ai); b[i]="";
     if ((player===ai && s>bestScore) || (player!==ai && s<bestScore)) { bestScore=s; move=i; }
   }
   return move;
+}
+
+// --- Big-board heuristic (used on 4x4 and bigger, and for Hint there) ---
+function lineCount(b, r, c, dr, dc, player) {
+  let count = 0, open = 0;
+  for (const dir of [1,-1]) {
+    for (let k=1;k<winLen();k++) {
+      const rr=r+dr*dir*k, cc=c+dc*dir*k;
+      if (!inBoard(rr,cc)) break;
+      const v=b[idx(rr,cc)];
+      if (v===player) count++;
+      else if (!v) { open++; break; }
+      else break;
+    }
+  }
+  return {count, open};
+}
+function scoreCell(b, i, player, opponent) {
+  const [r,c] = rc(i);
+  let score = 0;
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  for (const [dr,dc] of dirs) {
+    const p = lineCount(b, r, c, dr, dc, player);
+    const o = lineCount(b, r, c, dr, dc, opponent);
+    const w = winLen();
+    if (p.count >= w-1) score += 100000;
+    else if (p.count === w-2 && p.open >= 1) score += 5000;
+    else if (p.count === w-2) score += 500;
+    else if (p.count === w-3 && p.open >= 2) score += 800;
+    else score += p.count * 10 + p.open;
+    if (o.count >= w-1) score += 90000;
+    else if (o.count === w-2 && o.open >= 1) score += 4000;
+    else if (o.count === w-2) score += 400;
+    else score += o.count * 8;
+  }
+  // Prefer centre on big empty boards.
+  const centre = (size()-1)/2;
+  score -= (Math.abs(r-centre) + Math.abs(c-centre)) * 0.5;
+  return score;
+}
+function heuristicMove(b, player, opponent) {
+  // 1) Win now. 2) Block opponent win now. 3) Best scored cell.
+  for (const i of emptyCells(b)) { b[i]=player; const w=winner(b); b[i]=""; if (w && w.player===player) return i; }
+  for (const i of emptyCells(b)) { b[i]=opponent; const w=winner(b); b[i]=""; if (w && w.player===opponent) return i; }
+  let best=-Infinity, move=null;
+  for (const i of emptyCells(b)) { const s=scoreCell(b, i, player, opponent); if (s>best) { best=s; move=i; } }
+  return move;
+}
+function bestMoveFor(b, player, ai) {
+  if (size()===3) return minimaxMove(b, player, ai);
+  return heuristicMove(b, player, other(player));
+}
+function nearCells(b) {
+  const empties = emptyCells(b);
+  if (!empties.length) return empties;
+  const near = empties.filter(i=>{
+    const [r,c]=rc(i);
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      if (dr===0 && dc===0) continue;
+      const rr=r+dr, cc=c+dc;
+      if (inBoard(rr,cc) && b[idx(rr,cc)]) return true;
+    }
+    return false;
+  });
+  return near.length ? near : empties;
 }
 function aiPlayer() { return modeEl.value==="ai" ? other(sideEl.value) : null; }
 function humanPlayer() { return sideEl.value; }
@@ -73,14 +155,17 @@ function updateLabels() {
   $("soundBtn").textContent = soundOn ? "🔊 Sound: On" : "🔇 Sound: Off";
   document.body.classList.toggle("light", theme==="light");
   $("themeBtn").textContent = theme==="light" ? "☀️ Light" : "🌙 Dark";
+  $("winInfo").textContent = `Get ${winLen()} in a row to win on ${size()} × ${size()}.` + (size()>=9 ? " Big board = Gomoku-style, 5 in a row." : "");
 }
 
 function render() {
   boardEl.innerHTML = "";
+  boardEl.style.gridTemplateColumns = `repeat(${size()}, 1fr)`;
+  boardEl.className = "board size" + size();
   board.forEach((v,i)=>{
     const btn=document.createElement("button");
     btn.className="cell"+(v?" "+v.toLowerCase():"")+(hintCell===i?" hint":"");
-    btn.textContent=v||""; btn.disabled=over||!!v; btn.setAttribute("aria-label", v ? v+" in square "+(i+1) : "Empty square "+(i+1)+" — press "+(i+1));
+    btn.textContent=v||""; btn.disabled=over||!!v; btn.setAttribute("aria-label", v ? v+" in square "+(i+1) : "Empty square "+(i+1));
     btn.addEventListener("click",()=>onTap(i));
     boardEl.appendChild(btn);
   });
@@ -117,29 +202,32 @@ function play(i, player) {
   if (w){
     scores[w.player]++; lastResult = w.player; recordStreak(w.player);
     const label = modeEl.value==="ai" ? (w.player===humanPlayer() ? "🎉 You win!" : "🤖 AI wins!") : `🎉 Player ${w.player} wins!`;
-    const note = modeEl.value==="ai" && diffEl.value==="impossible" && w.player!==humanPlayer()
-      ? "Impossible AI never loses — a draw is the best result against it. Try Easy or Medium to win."
-      : (modeEl.value==="ai" && w.player===humanPlayer() ? `You beat ${diffEl.value} AI — nice!` : "");
-    history.push(`${w.player} won`); save("ttt-v5-scores", scores); save("ttt-v5-history", history);
+    const note = modeEl.value==="ai" && diffEl.value==="impossible" && size()===3 && w.player!==humanPlayer()
+      ? "Impossible AI on 3×3 never loses — a draw is the best result against it. Try Easy or Medium to win."
+      : (modeEl.value==="ai" && w.player===humanPlayer() ? `You beat ${diffEl.value} AI on ${size()}×${size()} — nice!` : "");
+    history.push(`${w.player} won (${size()}×${size()})`); save("ttt-v5-scores", scores); save("ttt-v5-history", history);
     endGame(label, w.line, w.player, note); return;
   }
   if (!emptyCells(board).length){
     scores.D++; lastResult = "D"; recordStreak("D");
-    history.push("Draw"); save("ttt-v5-scores", scores); save("ttt-v5-history", history);
-    endGame("🤝 It's a draw!", null, "D", modeEl.value==="ai" && diffEl.value==="impossible" ? "A draw against Impossible AI is a perfect result — it never loses." : ""); return;
+    history.push(`Draw (${size()}×${size()})`); save("ttt-v5-scores", scores); save("ttt-v5-history", history);
+    endGame("🤝 It's a draw!", null, "D", modeEl.value==="ai" && diffEl.value==="impossible" && size()===3 ? "A draw against Impossible AI on 3×3 is a perfect result — it never loses." : ""); return;
   }
   turn = other(player);
   statusEl.textContent = modeEl.value==="ai" ? (turn===humanPlayer() ? "Your turn ("+humanPlayer()+")" : "AI is thinking…") : `Player ${turn}'s turn`;
   render();
-  if (modeEl.value==="ai" && turn===aiPlayer() && !over) setTimeout(aiMove, 400);
+  if (modeEl.value==="ai" && turn===aiPlayer() && !over) setTimeout(aiMove, size()>=9 ? 200 : 400);
 }
 function aiMove() {
   if (over) return;
   const ai = aiPlayer(), empties = emptyCells(board);
   if (!empties.length) return;
+  if (!moves.length) { play(idx(Math.floor(size()/2), Math.floor(size()/2)), ai); return; }
   const diff = diffEl.value;
   const chanceBest = diff==="impossible" ? 1 : diff==="hard" ? 0.85 : diff==="medium" ? 0.5 : 0;
-  const move = Math.random() < chanceBest ? bestMoveFor([...board], ai, ai) : empties[Math.floor(Math.random()*empties.length)];
+  let move;
+  if (Math.random() < chanceBest) move = bestMoveFor([...board], ai, ai);
+  else move = size()===3 ? empties[Math.floor(Math.random()*empties.length)] : nearCells(board)[Math.floor(Math.random()*nearCells(board).length)];
   play(move, ai);
 }
 function onTap(i){
@@ -147,7 +235,7 @@ function onTap(i){
   play(i, turn);
 }
 function newGame(){
-  board=Array(9).fill(""); over=false; moves=[]; lastResult=null; hintCell=null; hintLine.textContent="";
+  board=Array(size()*size()).fill(""); over=false; moves=[]; lastResult=null; hintCell=null; hintLine.textContent="";
   endBanner.style.display="none";
   turn = modeEl.value==="ai" ? (firstEl.value==="ai" ? aiPlayer() : humanPlayer()) : "X";
   updateLabels();
@@ -157,11 +245,9 @@ function newGame(){
 }
 function undo(){
   if (!moves.length) return;
-  // If the game just ended, roll back its score too.
   if (over && lastResult) {
     if (lastResult==="D") scores.D--; else scores[lastResult]--;
     save("ttt-v5-scores", scores); history.pop(); save("ttt-v5-history", history);
-    streak = load("ttt-v5-streak", streak); // keep streak simple: do not recompute old streaks
     over=false; lastResult=null; endBanner.style.display="none";
   }
   const steps = modeEl.value==="ai" && moves.length>=2 ? 2 : 1;
@@ -179,7 +265,7 @@ function hint(){
   const ai = modeEl.value==="ai" ? aiPlayer() : other(player);
   const move = bestMoveFor([...board], player, ai);
   if (move===null || move===undefined) { hintLine.textContent = "No hint — board is full."; return; }
-  hintCell = move; hintLine.textContent = `💡 Best move: square ${move+1} (top-left is 1, bottom-right is 9).`;
+  hintCell = move; hintLine.textContent = `💡 Best move: square ${move+1} (square 1 = top-left).`;
   render();
 }
 
@@ -187,6 +273,7 @@ modeEl.addEventListener("change", newGame);
 diffEl.addEventListener("change", newGame);
 sideEl.addEventListener("change", newGame);
 firstEl.addEventListener("change", newGame);
+sizeEl.addEventListener("change", newGame);
 $("resetBtn").addEventListener("click", newGame);
 $("playAgainBtn").addEventListener("click", newGame);
 $("hintBtn").addEventListener("click", hint);
@@ -200,6 +287,6 @@ $("resetScoresBtn").addEventListener("click", ()=>{
 $("soundBtn").addEventListener("click", ()=>{ soundOn=!soundOn; save("ttt-v5-sound", soundOn); updateLabels(); render(); });
 $("themeBtn").addEventListener("click", ()=>{ theme = theme==="light" ? "dark" : "light"; save("ttt-v5-theme", theme); updateLabels(); });
 document.addEventListener("keydown", e=>{
-  if (/^[1-9]$/.test(e.key)) onTap(parseInt(e.key,10)-1);
+  if (size()===3 && /^[1-9]$/.test(e.key)) onTap(parseInt(e.key,10)-1);
 });
 newGame();

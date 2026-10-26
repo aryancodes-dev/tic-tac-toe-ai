@@ -22,7 +22,14 @@ select option{color:#111}
 .score b{display:block;font-size:26px}.score span{font-size:12px;color:#d1d5db}body.light .score span{color:#555}
 .stats{color:#d1d5db;font-size:13px}body.light .stats{color:#555}
 .status{font-size:17px;font-weight:700;min-height:26px;overflow-wrap:anywhere}
+.wininfo{color:#d1d5db;font-size:13px;margin:0 0 6px}body.light .wininfo{color:#555}
 .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;width:100%;margin:6px auto}
+.board.size4,.board.size5,.board.size6{gap:8px}
+.board.size9{gap:5px}.board.size12{gap:4px}.board.size15{gap:3px}
+.board.size4 .cell,.board.size5 .cell,.board.size6 .cell{font-size:34px;border-radius:12px}
+.board.size9 .cell{font-size:24px;border-radius:10px}
+.board.size12 .cell{font-size:18px;border-radius:8px}
+.board.size15 .cell{font-size:15px;border-radius:7px}
 .cell{aspect-ratio:1;border:0;border-radius:18px;background:#ffffff14;border:1px solid #ffffff22;font-size:52px;font-weight:900;color:#fff;cursor:pointer;animation:pop .18s ease}
 body.light .cell{background:#fff;color:#111;border-color:#ddd}
 @keyframes pop{from{transform:scale(.85)}to{transform:scale(1)}}
@@ -40,6 +47,7 @@ body.light .cell{background:#fff;color:#111;border-color:#ddd}
 @media (max-width:600px){
   .app{padding:12px}h1{font-size:19px}.logo{width:46px;height:46px;font-size:22px}
   .cell{font-size:40px;border-radius:14px}.board{gap:8px}
+  .board.size9 .cell{font-size:20px}.board.size12 .cell{font-size:15px}.board.size15 .cell{font-size:13px}
   select,button{font-size:14px;padding:9px 10px}
   .score b{font-size:22px}
 }

@@ -1,12 +1,19 @@
-# ❌⭕ Tic-Tac-Toe v5 with AI
+# ❌⭕ Tic-Tac-Toe v6 with AI
 
 **Project #02 of the 100+ AI Projects series — by Aryan Kumar Shah**
 
 Play Tic-Tac-Toe against an unbeatable Minimax AI, or with a friend.
 On Impossible mode the AI never loses — the best you can do is draw.
 
-## What it can do — v5, everything included
-### Kept from before (nothing removed)
+## What it can do — v6, everything included
+### Added in v6 — board sizes
+- **Board size selector: 3×3, 4×4, 5×5, 6×6, 9×9, 12×12, 15×15** — change it any time, a new game starts
+- **Win length:** 3 in a row on 3×3, 4 on 4×4, 5 on 5×5 and bigger (15×15 is Gomoku-style, 5 in a row)
+- **Big-board AI:** on 3×3 Impossible is perfect Minimax; on 4×4 and bigger it uses a strong heuristic (win > block win > open 4 > open 3 > centre) — perfect Minimax on 15×15 would hang a phone, so this is the honest limit
+- **Hint, Undo, streaks, scores, history all work on every board size**, and cells shrink automatically so 15×15 still fits on a phone screen with no sideways scroll
+- **Keyboard 1-9** works on 3×3 only (on bigger boards, tap the square)
+
+### Kept from v5 (nothing removed)
 - Vs AI mode: Easy, Medium, Impossible (Minimax)
 - Vs Friend mode (2 players on one phone)
 - Scoreboard: X wins, Draws, O wins, with winning-line highlight
@@ -39,7 +46,7 @@ On Impossible mode the AI never loses — the best you can do is draw.
 ```bash
 python tic_tac_toe.py
 ```
-Choose X or O, difficulty, AI first or not. Type `u` to undo, `q` to quit.
+Choose board size (3, 4, 5, 6, 9, 12, 15), X or O, difficulty, AI first or not. Type `u` to undo, `q` to quit.
 
 ## Files (upload exactly like this, all at repo root)
 ```

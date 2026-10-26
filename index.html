@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tic-Tac-Toe v5 with AI — by Aryan Kumar Shah</title>
-<meta name="description" content="Tic-Tac-Toe v5: unbeatable Minimax AI, Hard mode, play as X or O, hint, undo, streaks, match history, sound and light/dark theme. Web + installable app + Python.">
+<title>Tic-Tac-Toe v6 with AI — by Aryan Kumar Shah</title>
+<meta name="description" content="Tic-Tac-Toe v6: 3x3, 4x4, 5x5, 6x6, 9x9, 12x12 and 15x15 boards, unbeatable Minimax AI on 3x3, Hard mode, play as X or O, hint, undo, streaks, match history, sound and light/dark theme. Web + installable app + Python.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="manifest" href="manifest.json">
@@ -16,10 +16,21 @@
 <main class="app">
   <header>
     <div class="logo">❌⭕</div>
-    <div class="head-text"><h1>Tic-Tac-Toe <span class="vbadge">v5</span></h1><p>Can you beat the unbeatable AI?</p></div>
+    <div class="head-text"><h1>Tic-Tac-Toe <span class="vbadge">v6</span></h1><p>Can you beat the unbeatable AI?</p></div>
   </header>
 
   <div class="controls">
+    <label>Board size
+      <select id="boardSize">
+        <option value="3">3 × 3</option>
+        <option value="4">4 × 4</option>
+        <option value="5">5 × 5</option>
+        <option value="6">6 × 6</option>
+        <option value="9">9 × 9</option>
+        <option value="12">12 × 12</option>
+        <option value="15">15 × 15</option>
+      </select>
+    </label>
     <label>Mode
       <select id="mode"><option value="ai">Vs AI</option><option value="friend">Vs Friend</option></select>
     </label>
@@ -56,6 +67,7 @@
   <p class="stats" id="statsLine">Games: 0 • Win rate: — • Streak: 0 • Best streak: 0</p>
 
   <p id="status" class="status">Your turn — tap a square</p>
+  <p id="winInfo" class="wininfo">Get 3 in a row to win.</p>
   <section id="board" class="board" aria-label="Tic-Tac-Toe board"></section>
   <p id="hintLine" class="hint"></p>
 
@@ -71,7 +83,7 @@
     <p id="matchHistory" class="movelog">No finished games yet.</p>
   </details>
 
-  <p class="foot">Project #02 of the 100+ AI Projects series • by Aryan Kumar Shah • v5: everything from before, plus Hard mode, play as X or O, hint, undo, streaks, history, sound and theme. Impossible mode uses Minimax, so it never loses — best you can do is draw.</p>
+  <p class="foot">Project #02 of the 100+ AI Projects series • by Aryan Kumar Shah • v6: everything from v5, plus 3×3, 4×4, 5×5, 6×6, 9×9, 12×12 and 15×15 boards. 3×3 Impossible uses perfect Minimax and never loses; on big boards Impossible uses the strongest heuristic (perfect Minimax on 15×15 would take forever, so no phone app can do it instantly).</p>
 </main>
 <script src="app.js"></script>
 <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }</script>
