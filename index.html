@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tic-Tac-Toe with AI — by Aryan Kumar Shah</title>
-<meta name="description" content="Play Tic-Tac-Toe against an unbeatable Minimax AI, or with a friend. Scoreboard, difficulty levels, and a clean modern UI.">
+<title>Tic-Tac-Toe v5 with AI — by Aryan Kumar Shah</title>
+<meta name="description" content="Tic-Tac-Toe v5: unbeatable Minimax AI, Hard mode, play as X or O, hint, undo, streaks, match history, sound and light/dark theme. Web + installable app + Python.">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="manifest" href="manifest.json">
@@ -16,7 +16,7 @@
 <main class="app">
   <header>
     <div class="logo">❌⭕</div>
-    <div><h1>Tic-Tac-Toe with AI</h1><p>Can you beat the unbeatable AI?</p></div>
+    <div class="head-text"><h1>Tic-Tac-Toe <span class="vbadge">v5</span></h1><p>Can you beat the unbeatable AI?</p></div>
   </header>
 
   <div class="controls">
@@ -24,20 +24,54 @@
       <select id="mode"><option value="ai">Vs AI</option><option value="friend">Vs Friend</option></select>
     </label>
     <label id="diffWrap">Difficulty
-      <select id="difficulty"><option value="impossible">Impossible (Minimax)</option><option value="medium">Medium</option><option value="easy">Easy</option></select>
+      <select id="difficulty">
+        <option value="impossible">Impossible (Minimax)</option>
+        <option value="hard">Hard</option>
+        <option value="medium">Medium</option>
+        <option value="easy">Easy</option>
+      </select>
     </label>
-    <button id="resetBtn">New Game</button>
+    <label id="sideWrap">Play as
+      <select id="side"><option value="X">X</option><option value="O">O</option></select>
+    </label>
+    <label id="firstWrap">First move
+      <select id="first"><option value="you">You first</option><option value="ai">AI first</option></select>
+    </label>
+  </div>
+
+  <div class="controls controls2">
+    <button id="hintBtn">💡 Hint</button>
+    <button id="undoBtn">↩ Undo</button>
+    <button id="resetBtn">🔄 New Game</button>
+    <button id="resetScoresBtn">🧹 Reset Scores</button>
+    <button id="soundBtn">🔊 Sound: On</button>
+    <button id="themeBtn">🌙 Dark</button>
   </div>
 
   <div class="score">
-    <div><b id="scoreX">0</b><span>You (X)</span></div>
+    <div><b id="scoreX">0</b><span id="labelX">You (X)</span></div>
     <div><b id="scoreDraw">0</b><span>Draws</span></div>
-    <div><b id="scoreO">0</b><span>AI / O</span></div>
+    <div><b id="scoreO">0</b><span id="labelO">AI (O)</span></div>
   </div>
+  <p class="stats" id="statsLine">Games: 0 • Win rate: — • Streak: 0 • Best streak: 0</p>
 
   <p id="status" class="status">Your turn — tap a square</p>
   <section id="board" class="board" aria-label="Tic-Tac-Toe board"></section>
-  <p class="foot">Project #02 of the 100+ AI Projects series • by Aryan Kumar Shah • Impossible mode uses Minimax, so it never loses — best you can do is draw.</p>
+  <p id="hintLine" class="hint"></p>
+
+  <div id="endBanner" class="endbanner" style="display:none">
+    <b id="endText"></b>
+    <p id="endNote"></p>
+    <button id="playAgainBtn">▶ Play Again</button>
+  </div>
+
+  <details class="history">
+    <summary>📜 Moves &amp; match history (tap to open)</summary>
+    <p id="moveLog" class="movelog">No moves yet.</p>
+    <p id="matchHistory" class="movelog">No finished games yet.</p>
+  </details>
+
+  <p class="foot">Project #02 of the 100+ AI Projects series • by Aryan Kumar Shah • v5: everything from before, plus Hard mode, play as X or O, hint, undo, streaks, history, sound and theme. Impossible mode uses Minimax, so it never loses — best you can do is draw.</p>
 </main>
 <script src="app.js"></script>
 <script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }</script>
