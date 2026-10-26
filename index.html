@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic-Tac-Toe with AI — by Aryan Kumar Shah</title>
+<meta name="description" content="Play Tic-Tac-Toe against an unbeatable Minimax AI, or with a friend. Scoreboard, difficulty levels, and a clean modern UI.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#7c3aed">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg"></div>
+<main class="app">
+  <header>
+    <div class="logo">❌⭕</div>
+    <div><h1>Tic-Tac-Toe with AI</h1><p>Can you beat the unbeatable AI?</p></div>
+  </header>
+
+  <div class="controls">
+    <label>Mode
+      <select id="mode"><option value="ai">Vs AI</option><option value="friend">Vs Friend</option></select>
+    </label>
+    <label id="diffWrap">Difficulty
+      <select id="difficulty"><option value="impossible">Impossible (Minimax)</option><option value="medium">Medium</option><option value="easy">Easy</option></select>
+    </label>
+    <button id="resetBtn">New Game</button>
+  </div>
+
+  <div class="score">
+    <div><b id="scoreX">0</b><span>You (X)</span></div>
+    <div><b id="scoreDraw">0</b><span>Draws</span></div>
+    <div><b id="scoreO">0</b><span>AI / O</span></div>
+  </div>
+
+  <p id="status" class="status">Your turn — tap a square</p>
+  <section id="board" class="board" aria-label="Tic-Tac-Toe board"></section>
+  <p class="foot">Project #02 of the 100+ AI Projects series • by Aryan Kumar Shah • Impossible mode uses Minimax, so it never loses — best you can do is draw.</p>
+</main>
+<script src="app.js"></script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }</script>
+</body>
+</html>
